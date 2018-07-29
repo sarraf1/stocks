@@ -62,6 +62,7 @@ def getdividend(ticker, start, end):
 def Key_Stats(gather="Total Debt/Equity (mrq)", type=1):
     statspath = intrapath + '/_KeyStats'
     stock_list = [x[0] for x in os.walk(statspath)]
+    stock_list = sorted(stock_list) #Read stock folders alphabetically
     ticker_list = []
 
     df=pd.DataFrame(columns= ['Date','Unix','Ticker','DE Ratio', 'Price', 'Per. Change', 'SP500Price', 'SP500 Per. Change'])
@@ -81,6 +82,7 @@ def Key_Stats(gather="Total Debt/Equity (mrq)", type=1):
         have_starting_sp500_value = False
 
         files = os.listdir(each_dir)
+        files = sorted(files)
 ##        print(files)
         if len(files) > 0:
             for each_file in files:
