@@ -4,6 +4,13 @@ import quandl
 import time
 from datetime import datetime
 
+from time import mktime
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib import style
+style.use("dark_background")
+import re
+
 import csv
 import pandas_datareader.data as pdr
 
@@ -65,7 +72,7 @@ def Key_Stats(gather="Total Debt/Equity (mrq)", type=1):
     stock_list = sorted(stock_list) #Read stock folders alphabetically
     ticker_list = []
 
-    df=pd.DataFrame(columns= ['Date','Unix','Ticker','DE Ratio', 'Price', 'Per. Change', 'SP500Price', 'SP500 Per. Change'])
+    df=pd.DataFrame(columns= ['Date','Unix','Ticker','DE Ratio', 'Price', 'Per. Change', 'SP500Price', 'SP500 Per. Change', 'Difference'])
     #print(stock_list[0], stock_list[1])
     #time.sleep(5)
     #print('\n$$$$$$$$$$$$$$$$$$$$$$$$$$$\n')
@@ -96,8 +103,14 @@ def Key_Stats(gather="Total Debt/Equity (mrq)", type=1):
                     if type==1:
                         try:
                             ## Get Values ##
-                            de_ratio = float(text.split(gather + ':</td><td class="yfnc_tabledata1">')[1].split('</td>')[0])
+                            try:
+                                de_ratio = float(text.split(gather + ':</td><td class="yfnc_tabledata1">')[1].split('</td>')[0])
                             #print(de_ratio)
+                            except Exception as e:
+                                de_ratio = float(text.split(gather + ':</td>\n<td class="yfnc_tabledata1">')[1].split('</td>')[0])
+                                #print(str(e), ticker, file)
+                                #time.sleep(1)
+
 
                             try:
                                 sp500_date = datetime.fromtimestamp(unix_time).strftime('%Y-%m-%d')
@@ -123,9 +136,10 @@ def Key_Stats(gather="Total Debt/Equity (mrq)", type=1):
                                 have_starting_sp500_value = True
 
                             #TODO: Change starting value to be previous value
-                            #TODO: Figure out os.walk issue in linux
                             stock_p_change = (stock_price - starting_stock_price)*100/starting_stock_price
                             sp500_p_change = (sp500_close_price - starting_sp500_price)*100/starting_sp500_price
+
+                            difference = stock_p_change - sp500_p_change
 
                             #print(stock_price)
 
@@ -136,13 +150,26 @@ def Key_Stats(gather="Total Debt/Equity (mrq)", type=1):
                                           'Price':stock_price,
                                           'Per. Change':stock_p_change,
                                           'SP500Price':sp500_close_price,
-                                          'SP500 Per. Change':sp500_p_change},
+                                          'SP500 Per. Change':sp500_p_change,
+                                          'Difference':difference},
                                           ignore_index=True)
                         except Exception as e:
                             #print('Error!')
                             pass
 
         #time.sleep(1)
+    # Plot the differences
+    for each_ticker in ticker_list:
+        try:
+            plot_df = df[(df['Ticker'] == each_ticker)]
+            plot_df = plot_df.set_index(['Date'])
+
+            plot_df['Difference'].plot(label=each_ticker)
+            plt.legend()
+
+        except:
+            pass
+    plt.show()
     save=gather.replace(' ','').replace(')','').replace('(','').replace('/','')+('.csv')
     print(save)
     df.to_csv(save)
