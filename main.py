@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-import quandl
+#import quandl
 import time
 from datetime import datetime
 
@@ -13,6 +13,10 @@ import re
 
 import csv
 import pandas_datareader.data as pdr
+
+#import urllib2
+#from urllib2 import urlopen
+from urllib.request import urlopen
 
 auth_tok = open("auth.txt","r").read().rstrip()
 path = os.getcwd()
@@ -111,6 +115,13 @@ def Key_Stats(gather="Total Debt/Equity (mrq)", type=1):
                                 #print(str(e), ticker, file)
                                 #time.sleep(1)
 
+                            try:
+                                yahooSrc = 'http://finance.yahoo.com/quote/AAPL'
+                                sourceCode = urlopen('http://finance.yahoo.com/q/ks?s='+ticker).read().decode('utf-8')
+                                peRatio = sourceCode.split('\"trailingPE\":{\"raw\"')[1].split(',\"fmt\"')[0]
+                            except Exception as e:
+                                print('PERATIO ERROR: {0}'.format(e))
+
 
                             try:
                                 sp500_date = datetime.fromtimestamp(unix_time).strftime('%Y-%m-%d')
@@ -146,6 +157,7 @@ def Key_Stats(gather="Total Debt/Equity (mrq)", type=1):
                             df=df.append({'Date':date_stamp,
                                           'Unix':unix_time,
                                           'Ticker':ticker,
+                                          'PE Ratio':peRatio,
                                           'DE Ratio':de_ratio,
                                           'Price':stock_price,
                                           'Per. Change':stock_p_change,
@@ -154,7 +166,7 @@ def Key_Stats(gather="Total Debt/Equity (mrq)", type=1):
                                           'Difference':difference},
                                           ignore_index=True)
                         except Exception as e:
-                            #print('Error!')
+                            print('Error! ', str(e))
                             pass
 
         #time.sleep(1)
