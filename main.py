@@ -136,7 +136,20 @@ def Key_Stats(gather="Total Debt/Equity (mrq)", type=1):
                                 sp500_close_price = float(row["Adj Close"])
                                 pass
 
-                            stock_price = float(text.split('</small><big><b>')[1].split('</b></big>')[0])
+                            try:
+                                stock_price = float(text.split('</small><big><b>')[1].split('</b></big>')[0])
+                            except Exception as e:
+                                #print(str(e), ticker, each_file)
+                                # <span id="yfs_l10_aep">35.47</span>
+                                try:
+                                    stock_price = (text.split('</small><big><b>')[1].split('</b></big>')[0])
+                                    stock_price = re.search(r'(\d{1,8}\.\d{1,8})', stock_price)
+                                    stock_price = float(stock_price.group(1))
+                                    print(stock_price)
+                                    #time.sleep(15)
+                                except Exception as e:
+                                    print(str(e))
+                                    #time.sleep(15)
 
                             if not have_starting_stock_value:
                                 starting_stock_price = stock_price
